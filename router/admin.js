@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt")
 
 const adrouter = express.Router();
 
-adrouter.use(express.urlencoded({extends: true}))
+adrouter.use(express.urlencoded({extended:true}))
 
 
 //connecting to mongodb
@@ -48,12 +48,9 @@ adrouter.post("/adminlogin", async(req, res)=>{
         }else{
             res.render("admin",{pwerror:"incorrect password"})
         }
-    }else{
-            res.render("admin", {unerror: "Invaild username"})
-        }
+    }
     }catch{
-        const error = "cant connect";
-        console.log(error);
+        res.render("admin", {unerror: "Invaild username"})
     }
  })
 
@@ -66,7 +63,11 @@ adrouter.post("/adminlogin", async(req, res)=>{
 
  //admin add user
  adrouter.get("/adduser", (req, res)=>{
+    if(req.session.isadAuth){
     res.render("adduser");
+    }else{
+        res.redirect("/admin")
+    }
  })
 
  //admin adding users
@@ -76,7 +77,7 @@ adrouter.post("/adminlogin", async(req, res)=>{
         if(emailexist){
             res.render("adduser", {emailexist: "email already exist"})
         }else{
-            const { username, email, password } = req.body;
+            const { username, email } = req.body;
             const hashedpassword = await bcrypt.hash(req.body.password, 10)
             await userModel.insertMany([
                 {
@@ -93,8 +94,7 @@ adrouter.post("/adminlogin", async(req, res)=>{
  })
 
  //admin home router
- adrouter.route("/adhome")
-        .get(adsignin, async (req, res)=>{
+ adrouter.get("/adhome", adsignin, async (req, res)=>{
             if(req.session.isadAuth){
                 const data = await userModel.find({})
                 res.render("adminpannel", { users: data})
@@ -139,6 +139,8 @@ adrouter.post("/adminlogin", async(req, res)=>{
     }
 });
 
+
+//admin update user
  adrouter.post("/update/:email", adsignin, async(req, res)=>{
     if (req.session.isadAuth) {
         const useremail = req.params.email;
@@ -157,5 +159,6 @@ adrouter.post("/adminlogin", async(req, res)=>{
         res.redirect("/admin/adhome")
     }
 })
+
 
 module.exports = adrouter;

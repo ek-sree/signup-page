@@ -30,7 +30,7 @@ router.get("/", async(req, res)=>{
     if(req.session.isAuth){
         res.redirect("/home")
     }else if(req.session.isadAuth){
-        res.redirect("/admin")
+        res.redirect("/adminpannel")
     }else{
         res.render("login")
     }
@@ -38,7 +38,11 @@ router.get("/", async(req, res)=>{
 
 //signup page
 router.get("/signup",(req, res)=>{
-    res.render("signup")
+    if(req.session.isAuth){
+    res.redirect("/home")
+    }else{
+        res.render("signup")
+    }
 })
 
 //login process with db
@@ -66,7 +70,7 @@ router.post("/signup", async(req, res)=>{
         res.render("signup", {emailexist: "Email already exist"})
     }else{
         const hashedPassword = await bcrypt.hash(req.body.password,10)
-        const { username, email, password} = req.body;
+        const { username, email} = req.body;
         await userModel.insertMany([
             {   
              username: username,
